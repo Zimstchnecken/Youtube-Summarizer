@@ -1,4 +1,4 @@
-# YouTube Summarizer (Beginner Friendly)
+# YouTube Summarizer
 
 This app helps you understand a YouTube video quickly.
 
