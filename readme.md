@@ -1,133 +1,30 @@
-# YouTube Video Summarizer
+# YouTube Summarizer (Beginner Friendly)
 
-AI-powered app that turns YouTube transcripts into structured, timestamped key points.
+This app helps you understand a YouTube video quickly.
 
-- Backend: FastAPI (Python)
-- Frontend: React + Vite
-- Model provider: OpenRouter (via OpenAI client SDK)
+You paste a video link, then the app gives you:
+- a short timeline
+- key points
+- clickable timestamps
 
-## Features
+## What You Need
 
-- Summarize a YouTube video from URL input
-- Timestamped key-point output
-- Clickable timestamps that open YouTube at the right moment
-- Transcript chunking for long videos
-- In-memory caching with TTL
-- API rate limiting
-- Dark and light theme toggle
+You only need 3 things installed:
+1. Python (version 3.10 or newer)
+2. Node.js (version 18 or newer)
+3. An OpenRouter API key
 
-## Project Structure
+## What This App Does
 
-```text
-Youtube-Summarizer/
-  backend/
-    main.py
-    config.py
-    models.py
-    requirements.txt
-    services/
-      cache.py
-      summarizer.py
-      youtube.py
-    utils/
-      chunker.py
-  frontend/
-    index.html
-    package.json
-    vite.config.js
-    src/
-      App.jsx
-      main.jsx
-      index.css
-      components/
-      pages/
-```
+1. Reads a YouTube video's subtitles/transcript
+2. Sends the transcript to an AI model
+3. Returns a clear summary with timestamps
 
-## Backend API
+## Step-by-Step Setup (Windows)
 
-### GET /api/health
+Open PowerShell in this project folder and follow the steps below.
 
-Returns API health.
-
-Example response:
-
-```json
-{
-  "status": "ok"
-}
-```
-
-### POST /api/summarize
-
-Summarizes a YouTube video.
-
-Request:
-
-```json
-{
-  "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-}
-```
-
-Response shape:
-
-```json
-{
-  "title": "YouTube Video (dQw4w9WgXcQ)",
-  "duration": "03:32",
-  "summary": [
-    {
-      "timestamp": "00:12",
-      "point": "Main idea introduced."
-    }
-  ],
-  "video_id": "dQw4w9WgXcQ",
-  "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-}
-```
-
-Notes:
-
-- `title` is currently a generated placeholder based on `video_id`.
-- Summaries are generated per transcript chunk and then merged.
-
-## Error Responses
-
-- `400`: Invalid YouTube URL format
-- `403`: Video is private or restricted
-- `422`: No transcript available for this video
-- `429`: Service temporarily unavailable, try again later
-- `500`: Failed to summarize video / unexpected server error
-
-## Environment Variables
-
-### backend/.env.example
-
-```env
-OPENROUTER_API_KEY=your_openrouter_api_key_here
-OPENROUTER_MODEL=google/gemma-3-4b-it:free
-OPENROUTER_FALLBACK_MODELS=meta-llama/llama-3.3-70b-instruct:free,qwen/qwen3-coder:free,google/gemma-3-12b-it:free,mistralai/mistral-small-3.1-24b-instruct:free
-FRONTEND_ORIGIN=http://localhost:5173
-CACHE_TTL=86400
-RATE_LIMIT=10/minute
-SYSTEM_PROMPT=You are an expert content summarizer...
-```
-
-### frontend/.env.example
-
-```env
-VITE_API_BASE_URL=http://localhost:8000
-```
-
-## Local Setup
-
-### Prerequisites
-
-- Python 3.10+
-- Node.js 18+
-- OpenRouter API key
-
-### Backend (Windows PowerShell)
+### 1. Start the backend (server)
 
 ```powershell
 cd backend
@@ -135,11 +32,25 @@ python -m venv venv
 venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 Copy-Item .env.example .env
-# Edit .env and set OPENROUTER_API_KEY
-python -m uvicorn main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-### Frontend (Windows PowerShell)
+Now open `.env` and put your real OpenRouter API key here:
+
+```env
+OPENROUTER_API_KEY=your_real_key_here
+```
+
+Then run:
+
+```powershell
+python -m uvicorn main:app --host 127.0.0.1 --port 8000
+```
+
+Keep this terminal open.
+
+### 2. Start the frontend (website)
+
+Open a second PowerShell window:
 
 ```powershell
 cd frontend
@@ -148,73 +59,71 @@ Copy-Item .env.example .env
 npm run dev -- --host 127.0.0.1 --port 5173
 ```
 
-Open:
+Keep this terminal open too.
 
-- Frontend: http://127.0.0.1:5173
-- Backend docs: http://127.0.0.1:8000/docs
+### 3. Use the app
 
-## Quick Start
+Open this in your browser:
 
-1. Start backend.
-2. Start frontend.
-3. Paste a valid YouTube URL.
-4. Click Summarize.
-5. Open timestamp cards to jump to exact moments in YouTube.
+http://127.0.0.1:5173
 
-## Current Implementation Notes
+Paste a YouTube link and click **Summarize**.
 
-- Transcript source: `youtube-transcript-api`
-- Caching: in-memory singleton cache with TTL
-- Rate limiting: `slowapi` per client IP
-- CORS origin is controlled by `FRONTEND_ORIGIN`
-- Frontend keeps summary state in memory (refreshing `/summary` resets view)
+## If Something Goes Wrong
 
-## Troubleshooting
+### Error: Cannot connect to the server
 
-- `Cannot connect to the server`
-  - Ensure backend is running on `127.0.0.1:8000`
-  - Ensure `VITE_API_BASE_URL` matches backend URL
-- `No transcript available for this video`
-  - Video may not have captions or transcript may be disabled
-- `Service temporarily unavailable, try again later`
-  - OpenRouter quota/rate limit reached
+Usually this means backend is not running.
 
-## Production Notes
+Check:
+1. Backend terminal is still open
+2. Backend is running on `127.0.0.1:8000`
+3. Frontend is running on `127.0.0.1:5173`
 
-- Move cache to Redis for multi-instance deployments
-- Add real video metadata lookup for title
-- Add persistent summary history (database)
-- Keep secrets in `.env` and never commit API keys
+### Error: No transcript available for this video
 
-## License and Usage
+This video probably has no subtitles/transcript, or the transcript is disabled.
 
-- Respect YouTube Terms of Service
-- Summaries are AI-generated and may be imperfect
+Try a different video.
 
-### API Design
+### Error: Service temporarily unavailable
 
-| ✅ DO | ❌ DON'T |
-|-------|----------|
-| Version your endpoints (`/api/v1/summarize`) | Use unversioned root paths |
-| Use consistent JSON response shapes | Return different structures per endpoint |
-| Document all endpoints with FastAPI's auto-docs | Leave endpoints undocumented |
-| Set CORS to allow only the frontend origin | Use `allow_origins=["*"]` in production |
-| Rate limit by IP (10 req/min) | Allow unlimited requests |
+The AI provider is rate-limited right now.
 
-### Git & Project
+Wait a little and try again.
 
-| ✅ DO | ❌ DON'T |
-|-------|----------|
-| Use `.env` for secrets with `.env.example` as template | Commit `.env` or API keys to the repo |
-| Write descriptive commit messages | Use "fix", "update", "stuff" as commit messages |
-| Keep `requirements.txt` and `package.json` up to date | Install packages without saving to dependency files |
-| Add `.gitignore` for `node_modules/`, `venv/`, `.env`, `__pycache__/` | Track generated or environment-specific files |
+## Common Questions
 
-### Security
+### Do I need to pay?
 
-| ✅ DO | ❌ DON'T |
-|-------|----------|
-| Store API keys in environment variables only | Expose API keys in frontend code |
-| Sanitize all user input server-side | Trust client-side validation alone |
-| Use HTTPS in production | Serve over plain HTTP |
-| Implement rate limiting on all public endpoints | Leave endpoints open to abuse |
+You can use free OpenRouter models, but they may have limits.
+
+### Can I summarize any YouTube video?
+
+Only videos with accessible transcript/subtitles can be summarized.
+
+### Is the summary always perfect?
+
+No. AI summaries can make mistakes. Always verify important details.
+
+## Important Files
+
+- `backend/.env` - your secret API settings
+- `frontend/.env` - frontend app settings
+- `backend/main.py` - backend API
+- `backend/services/summarizer.py` - summary logic
+
+Do not upload `backend/.env` to public GitHub.
+
+## Quick Start (Very Short Version)
+
+1. Run backend on port `8000`
+2. Run frontend on port `5173`
+3. Open `http://127.0.0.1:5173`
+4. Paste link and summarize
+
+## Notes
+
+- The app is for learning and productivity.
+- Respect YouTube terms of use.
+- AI output can be wrong sometimes.
